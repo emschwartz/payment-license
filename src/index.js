@@ -19,31 +19,31 @@ exports.parseLicense = function parseLicense (file) {
           return tags[field]
         }
       }
-      throw new Error('No license found')
+      return null
     })
 }
 
 exports.addToFile = function addToFile (file, licenseFields) {
   return readId3Tags(file)
     .then(function (tags) {
+      const license = createLicense(licenseFields)
+      let wroteLicense = false
+      for (let field of LICENSE_FIELDS) {
+        if (isLicense(tags[field])) {
+          throw new Error('File already has license in field: ' + field)
+        } else if (!tags[field]) {
+          // TODO should we put the license in every field or just the first one?
+          tags[field] = license
+          wroteLicense = true
+          break
+        }
+      }
+
+      if (!wroteLicense) {
+        throw new Error('All potential license fields are already used: ' + LICENSE_FIELDS.join(', '))
+      }
+
       return new Promise(function (resolve, reject) {
-        const license = createLicense(licenseFields)
-        let wroteLicense = false
-        for (let field of LICENSE_FIELDS) {
-          if (tags[field] && isLicense(tags[field])) {
-            return reject(new Error('File already has license!'))
-          } else if (!tags[field]) {
-            // TODO should we put the license in every field or just the first one?
-            tags[field] = license
-            wroteLicense = true
-            break
-          }
-        }
-
-        if (!wroteLicense) {
-          return reject(new Error('All potential license fields are already used: ' + LICENSE_FIELDS.join(', ')))
-        }
-
         id3.write({
           path: file,
           tags: tags
@@ -69,7 +69,7 @@ function readId3Tags (file) {
 }
 
 function isLicense (string) {
-  return string.indexOf(LICENSE_PREFIX) === 0
+  return string && string.indexOf(LICENSE_PREFIX) === 0
 }
 
 function createLicense (params) {

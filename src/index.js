@@ -1,6 +1,7 @@
 'use strict'
 
 const id3 = require('id3_reader')
+const fileType = require('file-type')
 
 // TODO figure out if this is the right ordering of the fields
 const LICENSE_FIELDS = [
@@ -10,6 +11,26 @@ const LICENSE_FIELDS = [
    // TODO maybe could use 'copyright_message' or 'terms_of_use'
 ]
 const LICENSE_PREFIX = 'https://interledger.org/licenses/1.0/mpay'
+
+exports.SUPPORTED_FILETYPES = [
+  'mp3'
+]
+
+exports.supportsFileType = function supportsFiletype (typeOrBuffer) {
+  let type
+  if (Buffer.isBuffer(typeOrBuffer)) {
+    try {
+      let typeObj = fileType(typeOrBuffer)
+      if (typeObj) {
+        type = typeObj.ext
+      }
+    } catch (e) { }
+  } else if (typeof typeOrBuffer === 'string') {
+    type = typeOrBuffer
+  }
+
+  return exports.SUPPORTED_FILETYPES.indexOf(type) !== -1
+}
 
 exports.parseLicense = function parseLicense (file) {
   return readId3Tags(file)

@@ -5,6 +5,17 @@ var fs = require('fs')
 var path = require('path')
 var inquirer = require('inquirer')
 
+// TODO use a real options parser library
+if (process.argv[2] === '--read') {
+  var filePath = path.resolve(process.cwd(), process.argv[3])
+  var file = fs.readFileSync(filePath)
+  paymentLicense.parseLicenseFromFile(file)
+    .then(function (license) {
+      console.log(license)
+    })
+  return
+}
+
 var partialFilePath = process.argv[2]
 
 // TODO validate input
@@ -36,9 +47,10 @@ var prompts = [{
 inquirer.prompt(prompts, function (params) {
   // TODO use the async versions of fs functions
   // TODO handle directories
+  // TODO if the fileName is null just print the license details
   var filePath = path.resolve(process.cwd(), params.fileName)
   var file = fs.readFileSync(filePath)
-  paymentLicense.addToFile(file, {
+  paymentLicense.addLicenseToFile(file, {
     creator_account: params.creator_account,
     creator_public_key: params.creator_public_key,
     price_per_minute: params.price_per_minute
@@ -46,9 +58,9 @@ inquirer.prompt(prompts, function (params) {
   .then(function (fileWithLicense) {
     fs.writeFileSync(filePath, fileWithLicense)
 
-    return paymentLicense.parseLicense(fileWithLicense)
+    return paymentLicense.parseLicenseFromFile(fileWithLicense)
       .then(function (license) {
-        console.log('Added license: ' + license)
+        console.log('Added license:', license)
       })
   })
   .catch(function (err) {

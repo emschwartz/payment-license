@@ -2,12 +2,12 @@
 
 const querystring = require('querystring')
 
-const LICENSE_PREFIX = 'https://interledger.org/licenses/1.0/mpay?'
-exports.LICENSE_PREFIX = LICENSE_PREFIX
+const LICENSE_TYPE = 'https://interledger.org/licenses/1.0/mpay'
+const LICENSE_PREFIX = LICENSE_TYPE + '?'
 
 exports.createLicense = function createLicense (params) {
   // TODO should the license be a string, JSON, something else?
-  let license = exports.LICENSE_PREFIX
+  let license = LICENSE_PREFIX
   Object.keys(params).forEach(function (key, index) {
     if (index > 0) {
       license += '&'
@@ -24,5 +24,7 @@ exports.isLicense = function isLicense (string) {
 
 exports.parseLicense = function parseLicense (string) {
   const licenseParamsString = string.slice(LICENSE_PREFIX.length)
-  return querystring.parse(licenseParamsString)
+  let parsed = querystring.parse(licenseParamsString)
+  parsed.license_type = LICENSE_TYPE
+  return parsed
 }

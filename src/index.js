@@ -35,7 +35,7 @@ exports.parseLicenseFromFile = function parseLicenseFromFile (file) {
   }
 }
 
-exports.addLicenseToFile = function addLicenseToFile (file, licenseDetails) {
+exports.addLicenseToFile = function addLicenseToFile (file, licenseDetails, allowOverwrite) {
   let license
   if (typeof licenseDetails === 'string') {
     license = licenseDetails
@@ -46,7 +46,7 @@ exports.addLicenseToFile = function addLicenseToFile (file, licenseDetails) {
   const type = getFileType(file)
   switch (type) {
     case 'mp3':
-      return mp3.addLicenseToFile(file, license)
+      return mp3.addLicenseToFile(file, license, allowOverwrite)
     default:
       return Promise.reject(new Error('Filetype not supported: ' + type))
   }

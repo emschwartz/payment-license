@@ -11,13 +11,20 @@ const LICENSE_FIELDS = [
    // TODO maybe could use 'copyright_message' or 'terms_of_use'
 ]
 
-exports.addLicenseToFile = function addLicenseToFile (file, license) {
+// TODO add content_hash to license
+exports.addLicenseToFile = function addLicenseToFile (file, license, allowOverwrite) {
   return readId3Tags(file)
     .then(function (tags) {
       let wroteLicense = false
       for (let field of LICENSE_FIELDS) {
         if (licenseUtils.isLicense(tags[field])) {
-          throw new Error('File already has license in field: ' + field)
+          if (allowOverwrite) {
+            tags[field] = license
+            wroteLicense = true
+            break
+          } else {
+            throw new Error('File already has license in field: ' + field)
+          }
         } else if (!tags[field]) {
           // TODO should we put the license in every field or just the first one?
           tags[field] = license

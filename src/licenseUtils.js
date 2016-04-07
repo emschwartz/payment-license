@@ -28,3 +28,10 @@ exports.parseLicense = function parseLicense (string) {
   parsed.license_type = LICENSE_TYPE
   return parsed
 }
+
+exports.isValidLicense = function isValidLicense (license, now) {
+  let licenseParams = (typeof license === 'string' ? parseLicense(license) : license)
+  // TODO check expiry
+  // TODO check signature against public key
+  return licenseParams.hasOwnProperty('signature')
+}

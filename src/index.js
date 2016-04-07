@@ -8,6 +8,7 @@ const mp3 = require('./mp3')
 exports.createLicense = licenseUtils.createLicense
 exports.isLicense = licenseUtils.isLicense
 exports.parseLicense = licenseUtils.parseLicense
+exports.isValidLicense = licenseUtils.isValidLicense
 
 exports.SUPPORTED_FILETYPES = [
   'mp3'

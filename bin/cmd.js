@@ -9,9 +9,10 @@ var program = require('commander')
 // TODO allow directories
 var partialFilePath
 program
-  .version('1.0.0')
+  // .version('1.0.0')
   .usage('[options] [file]')
-  .option('--read', 'Parse license from file')
+  .description('Command line tool for generating and parsing payment licenses')
+  .option('--read', 'parse license from file')
   // Overwriting is disabled because there is a bug in the id3_reader
   // that makes it corrupt the file. Write once and it's still playable
   // write twice and...
@@ -19,6 +20,14 @@ program
   .arguments('[file]')
   .action(function (file) {
     partialFilePath = file
+  })
+  .on('--help', function () {
+    console.log('  Examples:')
+    console.log('')
+    console.log('    $ payment-license                            Runs the license creator tool and prints the output')
+    console.log('    $ payment-license ./path/to/song.mp3         Runs the license creator and attaches license to file')
+    console.log('    $ payment-license --read ./path/to/song.mp3  Parse the license from the file')
+    console.log('')
   })
   .parse(process.argv)
 

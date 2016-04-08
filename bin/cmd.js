@@ -12,7 +12,10 @@ program
   .version('1.0.0')
   .usage('[options] [file]')
   .option('--read', 'Parse license from file')
-  .option('--overwrite', 'Overwrite existing file license')
+  // Overwriting is disabled because there is a bug in the id3_reader
+  // that makes it corrupt the file. Write once and it's still playable
+  // write twice and...
+  // .option('--overwrite', 'Overwrite existing file license')
   .arguments('[file]')
   .action(function (file) {
     partialFilePath = file

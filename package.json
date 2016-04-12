@@ -19,8 +19,10 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^2.9.0",
+    "file-api": "^0.10.4",
     "file-type": "^3.8.0",
-    "id3_reader": "^1.0.1",
-    "inquirer": "^0.12.0"
+    "id3-writer": "^1.2.2",
+    "inquirer": "^0.12.0",
+    "jsmediatags": "^3.0.5"
   }
 }

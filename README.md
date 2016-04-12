@@ -4,7 +4,9 @@
 
 ## Installation
 
-Requires [Node.js](https://nodejs.org)
+Requires [Node.js](https://nodejs.org).
+
+For writing tags to files, [eyeD3](http://eyed3.nicfit.net/) is also required (see below for embedding options).
 
 ```sh
 git clone https://github.com/emschwartz/payment-license
@@ -14,7 +16,7 @@ npm install
 
 ## Usage
 
-When the tool is used on a file it will embed the license in the file's metadata tags.
+The `payment-license` tool will create and embed or read license details from media files. For each type of file there are a number of different tags that it will attempt to write to or read from, for example `comment` or `copyright` fields.
 
 ```sh
   Usage: payment-license [options] [file]
@@ -33,6 +35,18 @@ When the tool is used on a file it will embed the license in the file's metadata
     $ payment-license --read ./path/to/song.mp3  Parse the license from the file
 
 ```
+
+### Embedding using the CLI
+
+The CLI can be used to embed the license in the tags of a media file directly.
+
+It relies on [eyeD3](http://eyed3.nicfit.net/) for writing ID3 tags.
+
+### Embedding using other media tagger
+
+First, create the license using the `payment-license` command with no file specified. This will print the license as a string that can be manually added to media files.
+
+License information can be embedded in files using any program capable of editing ID3 tags, such as the tools listed on the [id3.org](http://id3.org/Implementations) site or some media players like VLC or iTunes. In VLC, the license would be embedded in either the `copyright` or `description` field (found under `Window > Media Information`). In iTunes, the license would be embedded in the `comments` field (found under `File > Get Info`).
 
 ## Supported filetypes
 

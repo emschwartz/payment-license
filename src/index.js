@@ -2,6 +2,7 @@
 
 const fileType = require('file-type')
 const Buffer = require('buffer').Buffer
+const path = require('path')
 const licenseUtils = require('./licenseUtils')
 const mp3 = require('./mp3')
 
@@ -54,8 +55,20 @@ exports.addLicenseToFile = function addLicenseToFile (file, licenseDetails, allo
 }
 
 function getFileType (file) {
-  try {
-    return fileType(file).ext
-  } catch (e) { }
-  return null
+  let type
+  if (typeof file === 'string') {
+    type = path.extname(file)
+    if (type.indexOf('.') === 0) {
+      type = type.slice(1)
+    }
+  } else if (Buffer.isBuffer(file)) {
+    try {
+      type = fileType(file).ext
+    } catch (e) {
+      type = null
+    }
+  } else {
+    type = null
+  }
+  return type
 }

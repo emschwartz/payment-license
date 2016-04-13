@@ -1,17 +1,16 @@
 'use strict'
 
-const jsmediatags = require('jsmediatags')
-const id3Writer = require('id3-writer')
+const id3js = require('id3js')
 const licenseUtils = require('./licenseUtils')
 const File = (typeof window === 'object' ? window.File : require('file-api').File)
 const fileType = require('file-type')
+const shell = require('shelljs')
 
 // TODO figure out if this is the right ordering of the fields
 const LICENSE_TAG_FIELDS = [
-  // TODO COMM shouldn' tbe the only supported tag but right now id3-writer doesn't support the others
-  // 'WPAY', // payment
-  // 'WCOP', // copyright information
-  // 'TCOP', // copyright message
+  'WPAY', // payment
+  'WCOP', // copyright information
+  'TCOP', // copyright message
   'COMM' // comments
 ]
 
@@ -48,29 +47,11 @@ function addLicenseToFile (filePath, license, allowOverwrite) {
         }
       }
 
-      console.log(tagToWriteTo)
-
       if (!tagToWriteTo) {
         throw new Error('All potential license fields are already used: ' + LICENSE_TAG_FIELDS.join(', '))
       }
 
-      return new Promise(function (resolve, reject) {
-        const writer = new id3Writer.Writer({
-          clear: false
-        })
-        const file = new id3Writer.File(filePath)
-        const meta = new id3Writer.Meta({
-          // TODO make id3-writer support writing other tags
-          comment: license
-        })
-
-        writer.setFile(file).write(meta, function (err) {
-          if (err) {
-            return reject(err)
-          }
-          resolve()
-        })
-      })
+      return writeTag(filePath, tagToWriteTo, license)
     })
 }
 
@@ -99,26 +80,45 @@ function parseLicenseFromFile (input) {
 }
 
 function readId3Tags (file) {
+  let arg
+  if (typeof file === 'string') {
+    arg = { file: file, type: id3js.OPEN_LOCAL }
+  } else if (file instanceof File) {
+    arg = file
+  }
+
   return new Promise(function (resolve, reject) {
-    new jsmediatags.Reader(file)
-      .setTagsToRead(LICENSE_TAG_FIELDS)
-      .read({
-        onSuccess: function (result) {
-          let tags = {}
-          for (let field of LICENSE_TAG_FIELDS) {
-            if (result.tags[field] && result.tags[field].data) {
-              if (typeof result.tags[field].data === 'string') {
-                tags[field] = result.tags[field].data
-              } else if (typeof result.tags[field].data === 'object' && result.tags[field].data.text) {
-                tags[field] = result.tags[field].data.text
-              }
-            }
-          }
-          resolve(tags)
-        },
-        onError: function (err) {
-          reject(new Error(err.info || err))
-        }
+    id3js(arg , function (err, tags) {
+      if (err) {
+        return reject(err)
+      }
+
+      resolve({
+        WPAY: tags.v2['url-payment'],
+        WCOP: tags.v2['url-legal'],
+        TCOP: tags.v2.copyright,
+        COMM: tags.v2.comments
       })
+    })
   })
+}
+
+function writeTag (filePath, tag, value) {
+  // TODO @tomorrow make sure the value matches the string spec if it's for a COMM tag
+  if (shell.which('mid3v2')) {
+    return new Promise(function (resolve, reject) {
+      shell.exec('mid3v2 --' + tag + ' "' + value + '" ' + filePath, {
+        async: true,
+        silent: true
+      }, function (code, stdout, stderr) {
+        if (code > 0) {
+          return reject(new Error(stderr))
+        }
+        resolve(stdout)
+      })
+    })
+  } else {
+    return Promise.reject(new Error('No tag writer found!'))
+  }
+  // TODO add support for eyeD3 or other libs
 }

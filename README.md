@@ -6,7 +6,7 @@
 
 Requires [Node.js](https://nodejs.org).
 
-For writing tags to files, [eyeD3](http://eyed3.nicfit.net/) is also required (see below for embedding options).
+For writing tags to files, [mutagen](https://mutagen.readthedocs.org) is also required (see below for embedding options).
 
 ```sh
 git clone https://github.com/emschwartz/payment-license
@@ -40,7 +40,7 @@ The `payment-license` tool will create and embed or read license details from me
 
 The CLI can be used to embed the license in the tags of a media file directly.
 
-It relies on [eyeD3](http://eyed3.nicfit.net/) for writing ID3 tags.
+It relies on [mutagen](https://mutagen.readthedocs.org) for writing ID3 tags.
 
 ### Embedding using other media tagger
 

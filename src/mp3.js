@@ -72,7 +72,11 @@ function parseLicenseFromFile (input) {
     .then(function (tags) {
       for (let field of LICENSE_TAG_FIELDS) {
         if (licenseUtils.isLicense(tags[field])) {
-          return licenseUtils.parseLicense(tags[field])
+          let licenseString = tags[field]
+          if (licenseString.lastIndexOf('\0') === licenseString.length - 1) {
+            licenseString = licenseString.slice(0, licenseString.length - 1)
+          }
+          return licenseUtils.parseLicense(licenseString)
         }
       }
       return null
@@ -94,20 +98,32 @@ function readId3Tags (file) {
       }
 
       resolve({
-        WPAY: tags.v2['url-payment'],
-        WCOP: tags.v2['url-legal'],
-        TCOP: tags.v2.copyright,
-        COMM: tags.v2.comments
+        WPAY: cleanTag(tags.v2['url-payment']),
+        WCOP: cleanTag(tags.v2['url-legal']),
+        TCOP: cleanTag(tags.v2.copyright),
+        COMM: cleanTag(tags.v2.comments)
       })
     })
   })
 }
 
+function cleanTag (string) {
+  // When the license is written as a unicode string id3js returns it as [u'...']
+  if (string && string.indexOf('[u\'') === 0) {
+    return string.slice(3, string.length - 3)
+  } else {
+    return string
+  }
+}
+
 function writeTag (filePath, tag, value) {
-  // TODO @tomorrow make sure the value matches the string spec if it's for a COMM tag
+  // The COMM tag uses colons in its format so we need to escape it before writing it
+  if (tag === 'COMM') {
+    value = value.replace(/[:]/g, '\\:')
+  }
   if (shell.which('mid3v2')) {
     return new Promise(function (resolve, reject) {
-      shell.exec('mid3v2 --' + tag + ' "' + value + '" ' + filePath, {
+      shell.exec('mid3v2 -e --' + tag + ' "' + value + '" ' + filePath, {
         async: true,
         silent: true
       }, function (code, stdout, stderr) {

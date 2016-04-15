@@ -74,7 +74,7 @@ function runLicenseCreatorTool (file, allowOverwrite) {
         creator_public_key: params.creator_public_key,
         price_per_minute: params.price_per_minute
       }, allowOverwrite)
-      .then(function (fileWithLicense) {
+      .then(function () {
         // TODO do we want to return the object or string form?
         return paymentLicense.parseLicenseFromFile(file)
           .then(function (license) {

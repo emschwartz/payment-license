@@ -1,12 +1,14 @@
 #!/usr/bin/env node
+'use strict'
 
-var paymentLicense = require('../')
-var path = require('path')
-var inquirer = require('inquirer')
-var program = require('commander')
+const paymentLicense = require('../')
+const path = require('path')
+const inquirer = require('inquirer')
+const program = require('commander')
+const WebFinger = require('webfinger.js')
 
 // TODO allow directories
-var partialFilePath
+let partialFilePath
 program
   // .version('1.0.0')
   .usage('[options] [file]')
@@ -28,7 +30,7 @@ program
   .parse(process.argv)
 
 if (partialFilePath) {
-  var filePath = path.resolve(process.cwd(), partialFilePath)
+  const filePath = path.resolve(process.cwd(), partialFilePath)
   if (program.read) {
     paymentLicense.parseLicenseFromFile(filePath)
       .then(function (license) {
@@ -44,16 +46,15 @@ if (partialFilePath) {
   runLicenseCreatorTool()
 }
 
-function runLicenseCreatorTool (file, allowOverwrite) {
-  // TODO validate input
+function promptForLicenseDetails () {
   console.log('Welcome to the payment-license creator tool')
-  var prompts = [{
+  const prompts = [{
     type: 'input',
     name: 'creator_account',
     // TODO accept alice@red.ilpdemo.org form
-    message: 'ILP account address to receive payments (e.g. https://red.ilpdemo.org/ledger/accounts/alice):',
+    message: 'ILP account address to receive payments (e.g. alice@red.ilpdemo.org):',
     // TODO get rid of defaults
-    default: 'https://red.ilpdemo.org/ledger/accounts/alice'
+    default: 'alice@red.ilpdemo.org'
   }, {
     type: 'input',
     name: 'creator_public_key',
@@ -66,26 +67,68 @@ function runLicenseCreatorTool (file, allowOverwrite) {
     default: '0.0001'
   }]
 
-  inquirer.prompt(prompts, function (params) {
-    // TODO use the async versions of fs functions
-    if (file) {
-      paymentLicense.addLicenseToFile(file, {
-        creator_account: params.creator_account,
-        creator_public_key: params.creator_public_key,
-        price_per_minute: params.price_per_minute
-      }, allowOverwrite)
-      .then(function () {
-        // TODO do we want to return the object or string form?
-        return paymentLicense.parseLicenseFromFile(file)
-          .then(function (license) {
-            console.log('Added license:', license)
-          })
-      })
-      .catch(function (err) {
-        console.error('Error: ' + err.stack || err.message || err)
-      })
-    } else {
-      console.log(paymentLicense.createLicense(params))
-    }
+  return new Promise(function (resolve, reject) {
+    inquirer.prompt(prompts, resolve)
   })
+}
+
+function webfingerAddress (address) {
+  const webfinger = new WebFinger()
+  return new Promise((resolve, reject) => {
+    webfinger.lookup(address, (err, res) => {
+      if (err) {
+        return reject(new Error('Error looking up wallet address: ' + err.message))
+      }
+
+      let webFingerDetails = {}
+      try {
+        for (let link of res.object.links) {
+          if (link.rel === 'http://webfinger.net/rel/ledgerAccount') {
+            webFingerDetails.account = link.href
+          } else if (link.rel === 'http://webfinger.net/rel/socketIOUri') {
+            webFingerDetails.socketIOUri = link.href
+          }
+        }
+      } catch (err) {
+        return reject(new Error('Error parsing webfinger response' + err.message))
+      }
+      resolve(webFingerDetails)
+    })
+  })
+}
+
+function runLicenseCreatorTool (file, allowOverwrite) {
+  // TODO validate input
+  promptForLicenseDetails()
+    .then(function (params) {
+      if (params.creator_account && params.creator_account.indexOf('@') !== -1) {
+        return webfingerAddress(params.creator_account)
+          .then((webFingerDetails) => {
+            params.creator_account = webFingerDetails.account
+            return params
+          })
+      } else {
+        return Promise.resolve(params)
+      }
+    })
+    .then(function (params) {
+      if (file) {
+        paymentLicense.addLicenseToFile(file, {
+          creator_account: params.creator_account,
+          creator_public_key: params.creator_public_key,
+          price_per_minute: params.price_per_minute
+        }, allowOverwrite)
+        .then(function () {
+          return paymentLicense.parseLicenseFromFile(file)
+            .then(function (license) {
+              console.log('Added license:', license)
+            })
+        })
+        .catch(function (err) {
+          console.error('Error: ' + err.stack || err.message || err)
+        })
+      } else {
+        console.log(paymentLicense.createLicense(params))
+      }
+    })
 }

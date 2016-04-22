@@ -1,6 +1,7 @@
 'use strict'
 
-const id3js = require('id3js')
+const jsmediatags = require('jsmediatags')
+const ArrayFileReader = require('jsmediatags/build2/ArrayFileReader')
 const licenseUtils = require('./licenseUtils')
 const File = (typeof window === 'object' ? window.File : require('file-api').File)
 const fileType = require('file-type')
@@ -55,17 +56,10 @@ function addLicenseToFile (filePath, license, allowOverwrite) {
     })
 }
 
-function parseLicenseFromFile (input) {
-  let file
-  if (typeof input === 'string' || input instanceof File || (typeof window === 'object' && input instanceof window.Blob)) {
-    file = input
-  } else if (Buffer.isBuffer(input)) {
-    file = new File({
-      name: 'doesn\t matter anyway, we\'re just reading',
-      type: fileType(input).type,
-      buffer: input
-    })
-  } else {
+function parseLicenseFromFile (file) {
+  if (!(typeof file === 'string' ||
+      Buffer.isBuffer(file) ||
+      (typeof File === 'function' && file instanceof File))) {
     return Promise.reject('Invalid file passed to parseLicenseFromFile')
   }
   return readId3Tags(file)
@@ -84,26 +78,23 @@ function parseLicenseFromFile (input) {
 }
 
 function readId3Tags (file) {
-  let arg
-  if (typeof file === 'string') {
-    arg = { file: file, type: id3js.OPEN_LOCAL }
-  } else if (file instanceof File) {
-    arg = file
-  }
-
   return new Promise(function (resolve, reject) {
-    id3js(arg , function (err, tags) {
-      if (err) {
-        return reject(err)
-      }
-
-      resolve({
-        WPAY: cleanTag(tags.v2['url-payment']),
-        WCOP: cleanTag(tags.v2['url-legal']),
-        TCOP: cleanTag(tags.v2.copyright),
-        COMM: cleanTag(tags.v2.comments)
+    new jsmediatags.Reader(file)
+      .setTagsToRead(LICENSE_TAG_FIELDS)
+      .read({
+        onSuccess: function (result) {
+          let tags = {}
+          for (let tag of LICENSE_TAG_FIELDS) {
+            if (result.tags[tag]) {
+              tags[tag] = cleanTag(result.tags[tag].data)
+            }
+          }
+          resolve(tags)
+        },
+        onError: function (err) {
+          reject(err)
+        }
       })
-    })
   })
 }
 

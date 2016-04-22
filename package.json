@@ -19,9 +19,9 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^2.9.0",
-    "file-api": "^0.10.4",
     "file-type": "^3.8.0",
     "inquirer": "^0.12.0",
+    "jsmediatags": "https://github.com/emschwartz/jsmediatags/tarball/allow-install-from-git",
     "shelljs": "^0.6.0",
     "webfinger.js": "^2.3.2"
   }

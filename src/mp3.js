@@ -99,7 +99,7 @@ function readId3Tags (file) {
 function cleanTag (string) {
   // When the license is written as a unicode string id3js returns it as [u'...']
   if (string && string.indexOf('[u\'') === 0) {
-    return string.slice(3, string.length - 3)
+    return string.slice(3, string.length - 2)
   } else {
     return string
   }

@@ -1,9 +1,7 @@
 'use strict'
 
 const jsmediatags = require('jsmediatags')
-const ArrayFileReader = require('jsmediatags/build2/ArrayFileReader')
 const licenseUtils = require('./licenseUtils')
-const File = (typeof window === 'object' ? window.File : require('file-api').File)
 const fileType = require('file-type')
 const shell = require('shelljs')
 

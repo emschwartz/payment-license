@@ -2,9 +2,13 @@
   "name": "payment-license",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "build/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm i --only=dev --ignore-scripts && ./node_modules/.bin/babel src -d build",
+    "watch": "babel src -w -d build",
+    "prepublish": "npm run build",
+    "postinstall": "postinstall-build build 'npm run build'"
   },
   "bin": {
     "payment-license": "./bin/cmd.js"
@@ -22,7 +26,12 @@
     "file-type": "^3.8.0",
     "inquirer": "^0.12.0",
     "jsmediatags": "https://github.com/emschwartz/jsmediatags/tarball/allow-install-from-git",
+    "postinstall-build": "^0.2.1",
     "shelljs": "^0.6.0",
     "webfinger.js": "^2.3.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.7.7",
+    "babel-preset-es2015": "^6.6.0"
   }
 }

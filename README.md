@@ -46,14 +46,17 @@ It relies on [mutagen](https://mutagen.readthedocs.org) for writing ID3 tags.
 
 First, create the license using the `payment-license` command with no file specified. This will print the license as a string that can be manually added to media files.
 
-License information can be embedded in files using any program capable of editing ID3 tags, such as the tools listed on the [id3.org](http://id3.org/Implementations) site or some media players like VLC or iTunes. In VLC, the license would be embedded in either the `copyright` or `description` field (found under `Window > Media Information`). In iTunes, the license would be embedded in the `comments` field (found under `File > Get Info`).
+License information can be embedded in files using any program capable of editing metadata tags, such as the tools listed on the [id3.org](http://id3.org/Implementations) site or some media players like VLC or iTunes. In VLC, the license would be embedded in either the `copyright` or `description` field (found under `Window > Media Information`). In iTunes, the license would be embedded in the `comments` field (found under `File > Get Info`).
 
 ## Supported filetypes
 
-- [x] mp3
-- [ ] mp4
-- [ ] jpg
-- [ ] pdf
+| File type | Read tags | Write tags |
+|   :---:   |   :---:   |   :---:    |
+| `mp3` | [x] | [x] |
+| `mp4` | [x] | [ ] |
+| `torrent` | [ ] | [ ] |
+| `jpg` | [ ] | [ ] |
+| `pdf`| [ ] | [ ] |
 
 ## License format
 

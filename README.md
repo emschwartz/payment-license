@@ -27,7 +27,7 @@ npm install
 
     -h, --help   output usage information
     --read       parse license from file
-    --overwrite  Overwrite existing file license
+    --overwrite  overwrite existing file license
 
   Examples:
 

@@ -14,7 +14,7 @@ program
   .usage('[options] [file]')
   .description('Command line tool for generating and parsing payment licenses')
   .option('--read', 'parse license from file')
-  .option('--overwrite', 'Overwrite existing file license')
+  .option('--overwrite', 'overwrite existing file license')
   .arguments('[file]')
   .action(function (file) {
     partialFilePath = file

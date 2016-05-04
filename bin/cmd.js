@@ -72,6 +72,8 @@ function promptForLicenseDetails () {
   })
 }
 
+// TODO we should probably use the five-bells-wallet-client to resolve the address
+// so that we stay in sync with the changes to the webfinger response
 function webfingerAddress (address) {
   const webfinger = new WebFinger()
   return new Promise((resolve, reject) => {
@@ -83,9 +85,9 @@ function webfingerAddress (address) {
       let webFingerDetails = {}
       try {
         for (let link of res.object.links) {
-          if (link.rel === 'http://webfinger.net/rel/ledgerAccount') {
+          if (link.rel === 'https://interledger.org/rel/ledgerAccount') {
             webFingerDetails.account = link.href
-          } else if (link.rel === 'http://webfinger.net/rel/socketIOUri') {
+          } else if (link.rel === 'https://interledger.org/rel/socketIOUri') {
             webFingerDetails.socketIOUri = link.href
           }
         }

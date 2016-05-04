@@ -25,15 +25,15 @@ npm install
 
   Options:
 
-    -h, --help  output usage information
-    --read  parse license from file
+    -h, --help   output usage information
+    --read       parse license from file
+    --overwrite  Overwrite existing file license
 
   Examples:
 
     $ payment-license                            Runs the license creator tool and prints the output
     $ payment-license ./path/to/song.mp3         Runs the license creator and attaches license to file
     $ payment-license --read ./path/to/song.mp3  Parse the license from the file
-
 ```
 
 ### Node.js or Browser

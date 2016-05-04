@@ -4,7 +4,13 @@ const jsmediatags = require('jsmediatags')
 const licenseUtils = require('./licenseUtils')
 const fileType = require('file-type')
 const shell = require('shelljs')
-const tmp = require('tmp')
+
+// This is needed for browserifying this module because the tmp module uses
+// process.versions.node, which is undefined in the browser
+let tmp
+try {
+  tmp = require('tmp')
+} catch (e) {}
 
 const LICENSE_TAG_FIELDS = [
   '©cpy', // copyright

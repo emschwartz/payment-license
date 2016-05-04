@@ -13,7 +13,8 @@ exports.parseLicense = licenseUtils.parseLicense
 exports.isValidLicense = licenseUtils.isValidLicense
 
 exports.SUPPORTED_FILETYPES = [
-  'mp3'
+  'mp3',
+  'mp4'
 ]
 
 exports.supportsFileType = function supportsFiletype (typeOrBuffer) {
@@ -52,6 +53,8 @@ exports.addLicenseToFile = function addLicenseToFile (file, licenseDetails, allo
   switch (type) {
     case 'mp3':
       return mp3.addLicenseToFile(file, license, allowOverwrite)
+    case 'mp4':
+      return mp4.addLicenseToFile(file, license, allowOverwrite)
     default:
       return Promise.reject(new Error('Filetype not supported: ' + type))
   }

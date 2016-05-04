@@ -121,11 +121,15 @@ function runLicenseCreatorTool (file, allowOverwrite) {
         .then(function () {
           return paymentLicense.parseLicenseFromFile(file)
             .then(function (license) {
-              console.log('Added license:', license)
+              if (license) {
+                console.log('Added license:', license)
+              } else {
+                console.error('Error: Something went wrong, the license was not attached to the file')
+              }
             })
         })
         .catch(function (err) {
-          console.error('Error: ' + err.stack || err.message || err)
+          console.error(err.stack || err.message || err)
         })
       } else {
         console.log(paymentLicense.createLicense(params))

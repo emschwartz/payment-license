@@ -22,13 +22,64 @@ if (typeof window !== 'object') {
   }
 }
 
+function parseLicenseFromFile (file) {
+  if (!(typeof file === 'string' ||
+      Buffer.isBuffer(file) ||
+      (typeof File === 'function' && file instanceof File))) {
+    return Promise.reject('Invalid file passed to parseLicenseFromFile')
+  }
+  return readTags(file)
+    .then(function (tags) {
+      for (let field of LICENSE_TAG_FIELDS) {
+        if (licenseUtils.isLicense(tags[field])) {
+          let licenseString = tags[field]
+          if (licenseString.lastIndexOf('\0') === licenseString.length - 1) {
+            licenseString = licenseString.slice(0, licenseString.length - 1)
+          }
+          return licenseUtils.parseLicense(licenseString)
+        }
+      }
+      return null
+    })
+}
+
+function readTags (file) {
+  return new Promise(function (resolve, reject) {
+    new jsmediatags.Reader(file)
+      .setTagsToRead(LICENSE_TAG_FIELDS)
+      .read({
+        onSuccess: function (result) {
+          let tags = {}
+          for (let tag of LICENSE_TAG_FIELDS) {
+            if (result.tags[tag]) {
+              tags[tag] = cleanTag(result.tags[tag].data)
+            }
+          }
+          resolve(tags)
+        },
+        onError: function (err) {
+          reject(new Error(err.info))
+        }
+      })
+  })
+}
+
+function cleanTag (string) {
+  // When the license is written as a unicode string id3js returns it as [u'...']
+  if (string && string.indexOf('[u\'') === 0) {
+    return string.slice(3, string.length - 2)
+  } else {
+    return string
+  }
+}
+
 // TODO add content_hash to license
 function addLicenseToFile (filePath, license, allowOverwrite) {
   if (typeof filePath !== 'string') {
     return Promise.reject(new Error('filePath must be a string'))
   }
 
-  return readId3Tags(filePath)
+  return readTags(filePath)
     .then(function (tags) {
       let tagToWriteTo
       for (let field of LICENSE_TAG_FIELDS) {
@@ -54,57 +105,6 @@ function addLicenseToFile (filePath, license, allowOverwrite) {
     })
 }
 
-function parseLicenseFromFile (file) {
-  if (!(typeof file === 'string' ||
-      Buffer.isBuffer(file) ||
-      (typeof File === 'function' && file instanceof File))) {
-    return Promise.reject('Invalid file passed to parseLicenseFromFile')
-  }
-  return readId3Tags(file)
-    .then(function (tags) {
-      for (let field of LICENSE_TAG_FIELDS) {
-        if (licenseUtils.isLicense(tags[field])) {
-          let licenseString = tags[field]
-          if (licenseString.lastIndexOf('\0') === licenseString.length - 1) {
-            licenseString = licenseString.slice(0, licenseString.length - 1)
-          }
-          return licenseUtils.parseLicense(licenseString)
-        }
-      }
-      return null
-    })
-}
-
-function readId3Tags (file) {
-  return new Promise(function (resolve, reject) {
-    new jsmediatags.Reader(file)
-      .setTagsToRead(LICENSE_TAG_FIELDS)
-      .read({
-        onSuccess: function (result) {
-          let tags = {}
-          for (let tag of LICENSE_TAG_FIELDS) {
-            if (result.tags[tag]) {
-              tags[tag] = cleanTag(result.tags[tag].data)
-            }
-          }
-          resolve(tags)
-        },
-        onError: function (err) {
-          reject(err)
-        }
-      })
-  })
-}
-
-function cleanTag (string) {
-  // When the license is written as a unicode string id3js returns it as [u'...']
-  if (string && string.indexOf('[u\'') === 0) {
-    return string.slice(3, string.length - 2)
-  } else {
-    return string
-  }
-}
-
 function writeTag (filePath, tag, value) {
   // The COMM tag uses colons in its format so we need to escape it before writing it
   if (tag === 'COMM') {
@@ -117,13 +117,13 @@ function writeTag (filePath, tag, value) {
         silent: true
       }, function (code, stdout, stderr) {
         if (code > 0) {
-          return reject(new Error(stderr))
+          return reject(new Error('Error writing tags: ' + stderr))
         }
         resolve(stdout)
       })
     })
   } else {
-    return Promise.reject(new Error('No tag writer found!'))
+    return Promise.reject(new Error('mid3v2 (mutagen) must be installed to write mp3 tags!'))
   }
   // TODO add support for eyeD3 or other libs
 }

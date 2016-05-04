@@ -4,14 +4,21 @@ const jsmediatags = require('jsmediatags')
 const licenseUtils = require('./licenseUtils')
 const fileType = require('file-type')
 const shell = require('shelljs')
+const tmp = require('tmp')
 
-// TODO figure out if this is the right ordering of the fields
 const LICENSE_TAG_FIELDS = [
-  'WPAY', // payment
-  'WCOP', // copyright information
-  'TCOP', // copyright message
-  'COMM' // comments
+  '©cpy', // copyright
+  // 'cprt', // other copyright field
+  '©cmt', // comments
+  'desc' // description
 ]
+
+// ffmpeg uses different names than jsmediatags
+const WRITE_TAG_MAPPING = {
+  '©cpy': 'copyright',
+  '©cmt': 'comment',
+  'desc': 'description'
+}
 
 exports.parseLicenseFromFile = parseLicenseFromFile
 if (typeof window !== 'object') {
@@ -52,7 +59,7 @@ function readTags (file) {
           let tags = {}
           for (let tag of LICENSE_TAG_FIELDS) {
             if (result.tags[tag]) {
-              tags[tag] = cleanTag(result.tags[tag].data)
+              tags[tag] = result.tags[tag].data
             }
           }
           resolve(tags)
@@ -62,15 +69,6 @@ function readTags (file) {
         }
       })
   })
-}
-
-function cleanTag (string) {
-  // When the license is written as a unicode string id3js returns it as [u'...']
-  if (string && string.indexOf('[u\'') === 0) {
-    return string.slice(3, string.length - 2)
-  } else {
-    return string
-  }
 }
 
 // TODO add content_hash to license
@@ -102,28 +100,48 @@ function addLicenseToFile (filePath, license, allowOverwrite) {
       }
 
       return writeTag(filePath, tagToWriteTo, license)
+        .then(function () {
+          return license
+        })
     })
 }
 
 function writeTag (filePath, tag, value) {
-  // The COMM tag uses colons in its format so we need to escape it before writing it
-  if (tag === 'COMM') {
-    value = value.replace(/[:]/g, '\\:')
+  if (!shell.which('ffmpeg')) {
+    return Promise.reject(new Error('ffmpeg must be installed to write mp3 tags!'))
   }
-  if (shell.which('mid3v2')) {
+
+  // Convert jsmediatags name to ffmpeg name
+  const ffmpegTag = WRITE_TAG_MAPPING[tag]
+
+  return new Promise(function (resolve, reject) {
+    // Create a temporary file to write to
+    // (This is necessary because ffmpeg cannot read and write from the same file)
+    tmp.tmpName({ postfix: '.mp4' }, function (err, path) {
+      if (err) {
+        return reject(err)
+      }
+      resolve(path)
+    })
+  })
+  .then(function (tempFile) {
+    // Copy file to temporary file
     return new Promise(function (resolve, reject) {
-      shell.exec('mid3v2 -e --' + tag + ' "' + value + '" ' + filePath, {
+      shell.exec('ffmpeg -y -i ' + filePath + ' -codec copy -metadata ' + ffmpegTag + '="' + value + '" ' + tempFile, {
         async: true,
         silent: true
       }, function (code, stdout, stderr) {
         if (code > 0) {
           return reject(new Error('Error writing tags: ' + stderr))
         }
-        resolve(stdout)
+        resolve(tempFile)
       })
     })
-  } else {
-    return Promise.reject(new Error('mid3v2 (mutagen) must be installed to write mp3 tags!'))
-  }
-  // TODO add support for eyeD3 or other libs
+  })
+  .then(function (tempFile) {
+    if (!shell.test('-e', tempFile)) {
+      throw new Error('ffmpeg did not write to the temporary file!')
+    }
+    shell.mv('-f', tempFile, filePath)
+  })
 }

@@ -28,6 +28,7 @@
     "jsmediatags": "^3.2.1",
     "postinstall-build": "^0.2.1",
     "shelljs": "^0.6.0",
+    "tmp": "0.0.28",
     "webfinger.js": "^2.3.2"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ const Buffer = require('buffer').Buffer
 const path = require('path')
 const licenseUtils = require('./licenseUtils')
 const mp3 = require('./mp3')
+const mp4 = require('./mp4')
 
 exports.createLicense = licenseUtils.createLicense
 exports.isLicense = licenseUtils.isLicense
@@ -12,7 +13,8 @@ exports.parseLicense = licenseUtils.parseLicense
 exports.isValidLicense = licenseUtils.isValidLicense
 
 exports.SUPPORTED_FILETYPES = [
-  'mp3'
+  'mp3',
+  'mp4'
 ]
 
 exports.supportsFileType = function supportsFiletype (typeOrBuffer) {
@@ -32,6 +34,8 @@ exports.parseLicenseFromFile = function parseLicenseFromFile (file) {
   switch (type) {
     case 'mp3':
       return mp3.parseLicenseFromFile(file)
+    case 'mp4':
+      return mp4.parseLicenseFromFile(file)
     default:
       return Promise.reject(new Error('Filetype not supported: ' + type))
   }
@@ -49,6 +53,8 @@ exports.addLicenseToFile = function addLicenseToFile (file, licenseDetails, allo
   switch (type) {
     case 'mp3':
       return mp3.addLicenseToFile(file, license, allowOverwrite)
+    case 'mp4':
+      return mp4.addLicenseToFile(file, license, allowOverwrite)
     default:
       return Promise.reject(new Error('Filetype not supported: ' + type))
   }

@@ -7,17 +7,21 @@ const licenseUtils = require('./licenseUtils')
 const mp3 = require('./mp3')
 const mp4 = require('./mp4')
 
-exports.createLicense = licenseUtils.createLicense
-exports.isLicense = licenseUtils.isLicense
-exports.parseLicense = licenseUtils.parseLicense
-exports.isValidLicense = licenseUtils.isValidLicense
-
-exports.SUPPORTED_FILETYPES = [
+const SUPPORTED_FILETYPES = [
   'mp3',
   'mp4'
 ]
 
-exports.supportsFileType = function supportsFiletype (typeOrBuffer) {
+exports.SUPPORTED_FILETYPES = SUPPORTED_FILETYPES
+exports.createLicense = licenseUtils.createLicense
+exports.isLicense = licenseUtils.isLicense
+exports.parseLicense = licenseUtils.parseLicense
+exports.isValidLicense = licenseUtils.isValidLicense
+exports.supportsFileType = supportsFiletype
+exports.parseLicenseFromFile = parseLicenseFromFile
+exports.addLicenseToFile = addLicenseToFile
+
+function supportsFiletype (typeOrBuffer) {
   let type
   if (Buffer.isBuffer(typeOrBuffer)) {
     type = getFileType(typeOrBuffer)
@@ -25,10 +29,10 @@ exports.supportsFileType = function supportsFiletype (typeOrBuffer) {
     type = typeOrBuffer
   }
 
-  return exports.SUPPORTED_FILETYPES.indexOf(type) !== -1
+  return SUPPORTED_FILETYPES.indexOf(type) !== -1
 }
 
-exports.parseLicenseFromFile = function parseLicenseFromFile (file) {
+function parseLicenseFromFile (file) {
   const type = getFileType(file)
 
   switch (type) {
@@ -41,7 +45,7 @@ exports.parseLicenseFromFile = function parseLicenseFromFile (file) {
   }
 }
 
-exports.addLicenseToFile = function addLicenseToFile (file, licenseDetails, allowOverwrite) {
+function addLicenseToFile (file, licenseDetails, allowOverwrite) {
   let license
   if (typeof licenseDetails === 'string') {
     license = licenseDetails

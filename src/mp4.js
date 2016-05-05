@@ -7,14 +7,14 @@ const shell = require('shelljs')
 
 // This is needed for browserifying this module because the tmp module uses
 // process.versions.node, which is undefined in the browser
-let tmp
+var tmp
 try {
   tmp = require('tmp')
 } catch (e) {}
 
-const LICENSE_TAG_FIELDS = [
+const LICENSE_TAGS = [
   '©cpy', // copyright
-  // 'cprt', // other copyright field
+  // 'cprt', // other copyright tag
   '©cmt', // comments
   'desc' // description
 ]
@@ -43,9 +43,10 @@ function parseLicenseFromFile (file) {
   }
   return readTags(file)
     .then(function (tags) {
-      for (let field of LICENSE_TAG_FIELDS) {
-        if (licenseUtils.isLicense(tags[field])) {
-          let licenseString = tags[field]
+      for (var t = 0; t < LICENSE_TAGS.length; t++) {
+        var tag = LICENSE_TAGS[t]
+        if (licenseUtils.isLicense(tags[tag])) {
+          var licenseString = tags[tag]
           if (licenseString.lastIndexOf('\0') === licenseString.length - 1) {
             licenseString = licenseString.slice(0, licenseString.length - 1)
           }
@@ -59,11 +60,11 @@ function parseLicenseFromFile (file) {
 function readTags (file) {
   return new Promise(function (resolve, reject) {
     new jsmediatags.Reader(file)
-      .setTagsToRead(LICENSE_TAG_FIELDS)
+      .setTagsToRead(LICENSE_TAGS)
       .read({
         onSuccess: function (result) {
-          let tags = {}
-          for (let tag of LICENSE_TAG_FIELDS) {
+          var tags = {}
+          for (var tag of LICENSE_TAGS) {
             if (result.tags[tag]) {
               tags[tag] = result.tags[tag].data
             }
@@ -85,24 +86,25 @@ function addLicenseToFile (filePath, license, allowOverwrite) {
 
   return readTags(filePath)
     .then(function (tags) {
-      let tagToWriteTo
-      for (let field of LICENSE_TAG_FIELDS) {
-        if (licenseUtils.isLicense(tags[field])) {
+      var tagToWriteTo
+      for (var t = 0; t < LICENSE_TAGS.length; t++) {
+        var tag = LICENSE_TAGS[t]
+        if (licenseUtils.isLicense(tags[tag])) {
           if (allowOverwrite) {
-            tagToWriteTo = field
+            tagToWriteTo = tag
             break
           } else {
-            // TODO should we check all of the fields rather than breaking out early?
-            throw new Error('File already has license in field: ' + field)
+            // TODO should we check all of the tags rather than breaking out early?
+            throw new Error('File already has license in tag: ' + tag)
           }
-        } else if (!tags[field]) {
-          tagToWriteTo = field
+        } else if (!tags[tag]) {
+          tagToWriteTo = tag
           break
         }
       }
 
       if (!tagToWriteTo) {
-        throw new Error('All potential license fields are already used: ' + LICENSE_TAG_FIELDS.join(', '))
+        throw new Error('All potential license tags are already used: ' + LICENSE_TAGS.join(', '))
       }
 
       return writeTag(filePath, tagToWriteTo, license)

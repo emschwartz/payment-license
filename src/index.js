@@ -24,7 +24,7 @@ exports.addLicenseToFile = addLicenseToFile
 exports.parseLicenseStream = parseLicenseStream
 
 function supportsFiletype (typeOrBuffer) {
-  let type
+  var type
   if (Buffer.isBuffer(typeOrBuffer)) {
     type = getFileType(typeOrBuffer)
   } else if (typeof typeOrBuffer === 'string') {
@@ -50,10 +50,10 @@ function parseLicenseFromFile (file) {
 // Returns a writable stream that will emit the 'license' event or call the
 // onLicense function with the license or null if no license is found
 function parseLicenseStream (onLicense) {
-  let license
+  var license
   // TODO this method of loading chunks into memory and continuously checking
   // them for a license is inefficient and may run into memory problems
-  let buffer = new Buffer(0)
+  var buffer = new Buffer(0)
 
   function checkFoundLicense (parsedLicense) {
     if (parsedLicense && !license) {
@@ -106,7 +106,7 @@ function parseLicenseStream (onLicense) {
 }
 
 function addLicenseToFile (file, licenseDetails, allowOverwrite) {
-  let license
+  var license
   if (typeof licenseDetails === 'string') {
     license = licenseDetails
   } else if (typeof licenseDetails === 'object') {
@@ -125,7 +125,7 @@ function addLicenseToFile (file, licenseDetails, allowOverwrite) {
 }
 
 function getFileType (file) {
-  let type
+  var type
   if (typeof file === 'string') {
     type = path.extname(file)
     if (type.indexOf('.') === 0) {

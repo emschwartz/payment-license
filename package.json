@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "babel src -d build",
-    "watch": "babel src -w -d build",
+    "watch": "babel src -w --source-maps 'inline' -d build",
     "prepublish": "npm run build",
     "postinstall": "postinstall-build build 'npm run build'"
   },
